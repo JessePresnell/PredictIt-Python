@@ -9,7 +9,7 @@ import codecs
 import pytz
 eastern = pytz.timezone('US/Eastern')
 def connect_local():
-	conn = psycopg2.connect(database="political", user="postgres", host="localhost", password="INSERT PASSWORD HERE")
+	conn = psycopg2.connect(database="predictit", user="INSERT USER HERE", host="INSERT HOST HERE", password="INSERT PASSWORD HERE")
 	print "Connected to Database"
 	cur = conn.cursor()
 	return cur, conn
