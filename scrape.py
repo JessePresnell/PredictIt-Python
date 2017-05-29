@@ -19,7 +19,7 @@ def connect_local():
   cur = conn.cursor()
   cur.execute("create table if not exists contracts (id integer primary key AUTO_INCREMENT, ticker_id varchar(255) NOT NULL, contract_ticker_symbol varchar(255), contract_name varchar(255), contract_date_start varchar(255), contract_date_end varchar(255))")
   cur.execute("create table if not exists tickers (ticker_id integer primary key, ticker_symbol varchar(255) NOT NULL unique, ticker_name varchar(255), ticker_short_name varchar(255), ticker_image varchar(255), ticker_timestamp varchar(255), ticker_status varchar(255));")
-  cur.execute("create table if not exists contract_data (id INTEGER primary key AUTO_INCREMENT, contract_ticker_symbol varchar(255), ticker_timestamp varchar(255), contract_traded INTEGER,contract_today_volume INTEGER,contract_total_shares INTEGER,contract_todays_change REAL)")
+  cur.execute("create table if not exists contract_data (id INTEGER primary key AUTO_INCREMENT, contract_ticker_symbol varchar(255), ticker_timestamp varchar(255), contract_traded INTEGER,contract_today_volume INTEGER,contract_total_shares INTEGER,contract_todays_change varchar(20))")
   cur.execute("create table if not exists contract_offers (ticker_id integer, contract_ticker_symbol varchar(255), contract_short_name varchar(255), contract_last_trade_price REAL, contract_best_buy_yes REAL, contract_best_buy_no REAL, contract_best_sell_yes REAL, contract_best_sell_no REAL, contract_last_close_price REAL, ticker_timestamp varchar(255))")
   return cur, conn
 
@@ -30,8 +30,8 @@ def get_tickers():
 
 def get_all_data(l):
 	for x in l:
-		ticker_name=x['Name']
-		ticker_short_name=x['ShortName']
+		ticker_name=x['Name'].replace(u"\u2018", "'").replace(u"\u2019", "'")
+		ticker_short_name=x['ShortName'].replace(u"\u2018", "'").replace(u"\u2019", "'")
 		ticker_symbol=x['TickerSymbol']
 		ticker_image=x['Image']
 		ticker_timestamp=x['TimeStamp']
@@ -57,9 +57,9 @@ def get_all_data(l):
 				soup=BeautifulSoup(html,'lxml')
 				contract_date_start=soup.find('td',text=re.compile("Start Date:")).next_sibling.next_sibling.string
 				contract_traded=soup.find('td',text=re.compile("Shares Traded:")).next_sibling.next_sibling.string.replace(",", "")
-				contract_today_volume=soup.find('td',text=re.compile("Today's Volume:")).next_sibling.next_sibling.string
+				contract_today_volume=soup.find('td',text=re.compile("Today's Volume:")).next_sibling.next_sibling.string.replace(",", "")
 				contract_total_shares=soup.find('td',text=re.compile("Total Shares:")).next_sibling.next_sibling.string.replace(",", "")
-				contract_todays_change=soup.find('td',text=re.compile("Today's Change:")).next_sibling.next_sibling.string
+				contract_todays_change=soup.find('td',text=re.compile("Today's Change:")).next_sibling.next_sibling.string.replace("+", "")
 				cur.execute("INSERT INTO contract_data (contract_ticker_symbol, ticker_timestamp, contract_traded, contract_today_volume, contract_total_shares, contract_todays_change) values (%s, %s, %s, %s, %s, %s)",(contract_ticker_symbol, ticker_timestamp, contract_traded, contract_today_volume, contract_total_shares, contract_todays_change,))
 				if contract_todays_change=='NC':
 				  contract_todays_change=0.0
